@@ -1,0 +1,85 @@
+﻿# * CAVEAT the * instance names are ONLY evaluated at startup.
+# * try to follow the metrics and label name best practices as described at:
+#   * https://prometheus.io/docs/practices/naming/
+#   * https://prometheus.io/docs/concepts/jobs_instances/
+#   * https://prometheus.io/docs/concepts/data_model/
+
+metrics:
+  #
+  # System.
+
+  - name: pce_system_up_time
+    counter: \System\System Up Time
+
+
+  #
+  # CPU.
+
+  - name: pce_processor_information_pct_processor_time_total
+    counter: \Processor Information(_Total)\% Processor Time
+  - name: pce_processor_information_pct_privileged_time_total
+    counter: \Processor Information(_Total)\% Privileged Time
+  - name: pce_system_processor_queue_length
+    counter: \System\Processor Queue Length
+  - name: pce_system_context_switches_sec
+    counter: \System\Context Switches/sec
+
+
+  #
+  # Memory.
+
+  - name: pce_memory_available_bytes
+    counter: \Memory\Available Bytes
+  - name: pce_memory_pages_sec
+    counter: \Memory\Pages/sec
+
+
+  #
+  # Network TCP v4.
+
+  - name: pce_tcpv4_connections_active
+    counter: \TCPv4\Connections Active
+  - name: pce_tcpv4_connections_passive
+    counter: \TCPv4\Connections Passive
+  - name: pce_tcpv4_connections_reset
+    counter: \TCPv4\Connections Reset
+  - name: pce_tcpv4_connection_failures
+    counter: \TCPv4\Connection Failures
+  - name: pce_tcpv4_connections_established
+    counter: \TCPv4\Connections Established
+
+
+  #
+  # Network Throughput.
+
+  - name: pce_network_interface_output_queue_length
+    counter: \Network Interface(*)\Output Queue Length
+    counter_instance_name_filters:
+      - '-^isatap.+'
+      - '-^Teredo Tunneling Pseudo-Interface$'
+  - name: pce_network_interface_bytes_total_sec
+    counter: \Network Interface(*)\Bytes Total/sec
+    counter_instance_name_filters:
+      - '-^isatap.+'
+      - '-^Teredo Tunneling Pseudo-Interface$'
+
+
+  #
+  # Disk.
+
+  - name: pce_logical_disk_pct_free_space
+    counter: \LogicalDisk(*)\% Free Space
+    counter_instance_name_filters:
+      - '-^_Total$'
+  - name: pce_logical_disk_disk_transfers_sec
+    counter: \LogicalDisk(*)\Disk Transfers/sec
+    counter_instance_name_filters:
+      - '-^_Total$'
+  - name: pce_logical_avg_disk_sec_read
+    counter: \LogicalDisk(*)\Avg. Disk sec/Read
+    counter_instance_name_filters:
+      - '-^_Total$'
+  - name: pce_logical_avg_disk_sec_write
+    counter: \LogicalDisk(*)\Avg. Disk sec/Write
+    counter_instance_name_filters:
+      - '-^_Total$'
