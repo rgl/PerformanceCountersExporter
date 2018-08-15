@@ -2,6 +2,7 @@
 using Prometheus;
 using Prometheus.Advanced;
 using System;
+using System.IO;
 using System.Reflection;
 using Topshelf;
 
@@ -55,10 +56,10 @@ namespace PerformanceCountersExporter
                         service.SetValue(
                             "ImagePath",
                             string.Format(
-                                "{0} -url {1} -metrics {2}",
+                                "{0} -url \"{1}\" -metrics \"{2}\"",
                                 service.GetValue("ImagePath"),
                                 url,
-                                metricsConfigPath));
+                                Path.GetFullPath(metricsConfigPath)));
                     }
                 });
                 hc.Service<PerformanceCountersExporterService>(sc =>
