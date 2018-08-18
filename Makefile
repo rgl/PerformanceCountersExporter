@@ -34,10 +34,10 @@ tmp/libz.exe:
 	unzip -d tmp tmp/libz-1.2.0.0-tool.zip
 
 PerformanceCountersExporter/bin/Release/PerformanceCountersExporter.exe: PerformanceCountersExporter/*
-	dotnet msbuild -m -p:Configuration=Release -t:restore -t:build
+	MSBuild.exe -m -p:Configuration=Release -t:restore -t:build
 
 clean:
-	dotnet msbuild -m -p:Configuration=Release -t:clean
+	MSBuild.exe -m -p:Configuration=Release -t:clean
 	rm -rf tmp dist
 
 .PHONY: dist clean
