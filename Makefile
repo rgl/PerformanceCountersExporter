@@ -12,11 +12,12 @@ dist/PerformanceCountersExporter.zip: dist/PerformanceCountersExporter.exe dist/
 
 dist/PerformanceCountersExporter.exe: PerformanceCountersExporter/bin/Release/PerformanceCountersExporter.exe tmp/libz.exe
 	mkdir -p dist
+	# NB to be able to load Serilog.Sinks.File from .config we need to use Scenario 4 as
+	#    described at https://github.com/MiloszKrajewski/LibZ/blob/master/doc/scenarios.md
 	cd PerformanceCountersExporter/bin/Release && \
-		../../../tmp/libz.exe inject-dll \
-			--assembly PerformanceCountersExporter.exe \
-			--include '*.dll' \
-			--move
+		../../../tmp/libz add --libz PerformanceCountersExporter.libz --include '*.dll' --move && \
+		../../../tmp/libz inject-libz --assembly PerformanceCountersExporter.exe --libz PerformanceCountersExporter.libz --move && \
+		../../../tmp/libz instrument --assembly PerformanceCountersExporter.exe --libz-resources
 	cp PerformanceCountersExporter/bin/Release/PerformanceCountersExporter.exe* dist
 
 dist/metrics.yml: PerformanceCountersExporter/metrics.yml

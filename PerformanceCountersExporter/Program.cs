@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using Prometheus;
 using Prometheus.Advanced;
+using Serilog;
 using System;
 using System.IO;
 using System.Reflection;
@@ -41,12 +42,18 @@ namespace PerformanceCountersExporter
     {
         static int Main(string[] args)
         {
+            ConfigureSerilog();
+
             var exitCode = HostFactory.Run(hc =>
             {
+                hc.UseSerilog();
+
                 var url = new Uri("http://localhost:9358/metrics"); // see https://github.com/prometheus/prometheus/wiki/Default-port-allocations
                 var metricsConfigPath = "metrics.yml";
+
                 hc.AddCommandLineDefinition("url", value => url = new Uri(value));
                 hc.AddCommandLineDefinition("metrics", value => metricsConfigPath = value);
+
                 hc.AfterInstall((ihs) =>
                 {
                     // add service parameters.
@@ -62,26 +69,65 @@ namespace PerformanceCountersExporter
                                 Path.GetFullPath(metricsConfigPath)));
                     }
                 });
+
                 hc.Service<PerformanceCountersExporterService>(sc =>
                 {
-                    sc.ConstructUsing(settings => new PerformanceCountersExporterService(url, metricsConfigPath));
+                    sc.ConstructUsing(settings =>
+                        {
+                            Log.Information("Configuration url: {url}", url);
+                            Log.Information("Configuration metrics: {metrics}", metricsConfigPath);
+
+                            return new PerformanceCountersExporterService(url, metricsConfigPath);
+                        });
                     sc.WhenStarted(service => service.Start());
                     sc.WhenStopped(service => service.Stop());
                 });
+
                 hc.EnableServiceRecovery(rc =>
                 {
                     rc.RestartService(1); // first failure: restart after 1 minute
                     rc.RestartService(1); // second failure: restart after 1 minute
                     rc.RestartService(1); // subsequent failures: restart after 1 minute
                 });
+
                 hc.StartAutomatically();
                 hc.RunAsLocalSystem();
+
                 hc.SetDescription(Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyDescriptionAttribute>().Description);
                 hc.SetDisplayName(Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title);
                 hc.SetServiceName(Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product);
             });
 
             return (int)Convert.ChangeType(exitCode, exitCode.GetTypeCode());
+        }
+
+        private static void ConfigureSerilog()
+        {
+            if (!Environment.UserInteractive)
+            {
+                Directory.SetCurrentDirectory(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            }
+
+            var configuration = new LoggerConfiguration();
+
+            if (Environment.UserInteractive)
+            {
+                configuration = configuration
+                    .MinimumLevel.Debug()
+                    .WriteTo.Console();
+            }
+            else
+            {
+                configuration = configuration
+                    .ReadFrom.AppSettings();
+            }
+
+            Log.Logger = configuration.CreateLogger();
+
+            if (Environment.UserInteractive)
+            {
+                Log.Information("Running in UserInteractive mode");
+            }
         }
     }
 }

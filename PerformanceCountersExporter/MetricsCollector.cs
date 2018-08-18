@@ -1,5 +1,6 @@
 ﻿using Prometheus;
 using Prometheus.Advanced;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,6 +33,15 @@ namespace PerformanceCountersExporter
             {
                 foreach (var c in Counters)
                 {
+                    if (c.InstanceName != "")
+                    {
+                        Log.Debug(@"Updating metric {Metric} counter \{CategoryName}({InstanceName})\{CounterName}", Name, c.CategoryName, c.InstanceName, c.CounterName);
+                    }
+                    else
+                    {
+                        Log.Debug(@"Updating metric {Metric} counter \{CategoryName}\{CounterName}", Name, c.CategoryName, c.CounterName);
+                    }
+
                     var gauge = Metrics.WithCustomRegistry(_registry).CreateGauge(Name, Help, "counter_instance_name");
                     gauge.Labels(c.InstanceName).Set(c.NextValue());
                     //var gaugeRaw = Metrics.WithCustomRegistry(_registry).CreateGauge(Name + "_raw", Help, "counter_instance_name");
@@ -146,7 +156,14 @@ namespace PerformanceCountersExporter
         {
             foreach (var m in _metrics)
             {
-                m.Update();
+                try
+                {
+                    m.Update();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Unhandled exception updating metric {Metric}", m.Name);
+                }
             }
         }
     }
