@@ -3,7 +3,7 @@
     <ProjectGuid>{9D019064-DE1A-4A32-B771-1BA0DAEE1454}</ProjectGuid>
     <TargetFramework>net461</TargetFramework>
     <OutputType>Exe</OutputType>
-    <Version>0.0.3</Version>
+    <Version>0.0.4</Version>
     <AssemblyTitle>Performance Counters Exporter</AssemblyTitle>
     <Description>Exports Windows Performance Counters as Prometheus Metrics</Description>
     <Company>ruilopes.com</Company>
